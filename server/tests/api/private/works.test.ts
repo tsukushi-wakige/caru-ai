@@ -9,14 +9,26 @@ test(GET(noCookieClient.private.works), async () => {
   expect(res).toHaveLength(0);
 });
 
-test(POST(noCookieClient.private.works), async () => {
-  const userClient = await createUserClient();
-  const novelUrl = 'https://www.aozora.gr.jp/cards/000879/files/128_15261.html';
-  const res = await userClient.private.works.$post({
-    body: { novelUrl },
-  });
-  expect(res).toMatchObject({
-    title: '羅生門',
-    author: '芥川龍之介',
-  });
-});
+test(
+  POST(noCookieClient.private.works),
+  async () => {
+    const userClient = await createUserClient();
+    const novelUrl = 'https://www.aozora.gr.jp/cards/000879/files/127_15260.html';
+    await userClient.private.works.$post({
+      body: { novelUrl },
+    });
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const res = await userClient.private.works.$get();
+      if (res[0].status !== 'loading') {
+        expect(res[0].status).toBe('completed');
+        expect(res[0].novelUrl).toBe(novelUrl);
+        expect(res[0].title).toBe('羅生門');
+        expect(res[0].author).toBe('芥川龍之介');
+        break;
+      }
+    }
+  },
+  300_000,
+);
